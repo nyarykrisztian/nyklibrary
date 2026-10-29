@@ -147,3 +147,14 @@ bash Telepites.command
 Csak a telepítés sikeres befejezése után indítsd: `bash Inditas.command`. A frissítés a könyvadatbázishoz nem nyúl. A sikertelen régi `.venv` mappát a telepítő `.venv-incomplete-*` néven megőrzi; nem kell kézzel törölnöd.
 
 Ha a `curl` 404-es vagy hozzáférési hibát ad, ne folytasd a következő paranccsal: jelezd a hiba szövegét. Privát GitHub-tárolónál a böngészős GitHub-bejelentkezés önmagában nem hitelesíti a Terminál letöltését; ilyenkor böngészőből töltsd le a friss forrás-ZIP-et, és csak a benne lévő `Telepites.command` és `scripts/setup.sh` fájlokat másold a meglévők helyére. A teljes alkalmazásmappát és különösen a `data` mappát ne cseréld le.
+
+
+## Javítás: truststore / macOS-verzió / ValueError
+
+Ha a részletes hiba a `pip/_vendor/truststore/_macos.py` fájlban `ValueError: invalid literal for int() with base 10: ''`, a pip tanúsítványkezelője üres macOS-verzióadatot kapott. A Python-verzióváltás önmagában ezt nem oldja meg.
+
+A javított setup először pip nélkül hozza létre a virtuális környezetet, majd a Pythonhoz mellékelt eredeti pip-wheelből, hálózati letöltés nélkül telepíti a pipet. Csak macOS alatt, hiányzó verzióadat esetén a pip támogatott `--use-deprecated=legacy-certs` kapcsolóját választja. Ezzel a pip saját certifi CA-listája ellenőrzi a TLS-t; nincs `--trusted-host`, nincs kikapcsolt tanúsítványellenőrzés. Érvényes macOS-verzióadat esetén az alapértelmezett tanúsítványkezelés marad.
+
+A `scripts/repair-macos.command` frissíti a három szükséges telepítőfájlt, majd újrafuttatja a Mac-telepítőt. Megadható neki az ellenőrzött teljes Git-commitazonosító, hogy a GitHub gyorsítótára helyett biztosan a kívánt változatot töltse le. A beszélgetésben megadott legújabb javítóparancsot használd; az előző részben szereplő kétfájlos frissítés önmagában ehhez a hibához már nem elegendő.
+
+Fejlesztői ellenőrzés: `.venv/bin/python tests/python-packages-test.py` (3 célzott regressziós teszt), `node tests/setup-install.mjs` (hiányos környezet megőrzése és újraépítése). A pip offline telepítését üres, valódi venv-ben is ellenőriztük Linuxon; a teljes macOS folyamatot a felhasználó gépén kell visszaellenőrizni.

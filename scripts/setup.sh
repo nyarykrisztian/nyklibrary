@@ -28,12 +28,16 @@ if [[ -d .venv ]]; then
 fi
 if [[ ! -x .venv/bin/python ]]; then
   echo "Python $base_version környezet létrehozása…"
-  if ! "$setup_python" -m venv .venv; then
+  if ! "$setup_python" -m venv --without-pip .venv; then
     echo "Nem sikerült a Python-környezet létrehozása. A fenti hibaüzenetet másold be a beszélgetésbe." >&2
     exit 1
   fi
 fi
-.venv/bin/python -m pip install --disable-pip-version-check -r requirements.txt
+if ! .venv/bin/python -m pip --version >/dev/null 2>&1; then
+  echo "A Python csomagtelepítő offline előkészítése…"
+  .venv/bin/python scripts/python-packages.py bootstrap
+fi
+.venv/bin/python scripts/python-packages.py install requirements.txt
 mkdir -p .runtime/tessdata
 for lang in eng hun; do
   if [[ "$lang" == eng ]]; then expected=7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2
