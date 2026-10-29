@@ -10,6 +10,7 @@ try {
   const root=path.join(temp,scenario);const bin=path.join(root,'test-bin');
   for(const dir of ['scripts','data','.runtime/tessdata','.venv/bin','test-bin'])mkdirSync(path.join(root,dir),{recursive:true});
   copyFileSync('scripts/setup.sh',path.join(root,'scripts/setup.sh'));
+  copyFileSync('scripts/python-env.sh',path.join(root,'scripts/python-env.sh'));
   copyFileSync('scripts/python-packages.py',path.join(root,'scripts/python-packages.py'));
   for(const lang of ['eng','hun'])copyFileSync(`.runtime/tessdata/${lang}.traineddata`,path.join(root,'.runtime/tessdata',`${lang}.traineddata`));
   writeFileSync(path.join(root,'data','keep.txt'),'USER DATA');writeFileSync(path.join(root,'.venv','keep.txt'),'OLD ENV');

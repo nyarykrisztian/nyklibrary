@@ -13,11 +13,13 @@ else
   exit 1
 fi
 export PATH="$("$brew_bin" --prefix node@24)/bin:$("$brew_bin" --prefix)/bin:$PATH"
+export EX_LIBRIS_EXPAT_LIB_DIR="$("$brew_bin" --prefix expat)/lib"
+source scripts/python-env.sh
 if [[ ! -f .next/BUILD_ID || ! -d node_modules || ! -x .venv/bin/python ]]; then
   echo "Még nincs kész a telepítés. Előbb futtasd: bash Telepites.command"
   exit 1
 fi
-if ! .venv/bin/python -c 'from PIL import Image' >/dev/null 2>&1; then
+if ! exlibris_python .venv/bin/python -c 'from PIL import Image; import pyexpat; import platform; assert platform.mac_ver()[0]' >/dev/null 2>&1; then
   echo "A Python-környezet telepítése hiányos. Futtasd: bash Telepites.command"
   exit 1
 fi

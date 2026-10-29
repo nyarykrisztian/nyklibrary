@@ -42,7 +42,7 @@ Az alábbi útmutató Ubuntu/Debian Linuxra, illetve Windows alatt Ubuntu WSL-re
 
 Fejlesztéshez `npm run dev`; kódmódosítás utáni normál használathoz előbb `npm run build`, majd `npm start`. A Webpack buildet használjuk, mert a Next.js Turbopackja a projektbeli Python-venv külső rendszerre mutató symlinkjeit ebben a környezetben nem tudta kezelni. A program minden parancsot a projekt gyökérkönyvtárából vár. A Mac-telepítő rögzített Python 3.12-t választ; hiányos vagy eltérő verziójú `.venv` esetén a régit `.venv-incomplete-*` néven megőrzi, majd újat készít. A könyvadatokat nem módosítja. Ha a Mac nem ad vissza macOS-verzióadatot, a pip a támogatott certifi CA-listás tanúsítványellenőrzést használja. Részletek és a javítófájl használata a Mac-útmutató végén.
 
-macOS esetén Homebrew-val `brew install node@24 python@3.12 ffmpeg tesseract` használható, de a teljes telepítést itt Linuxon ellenőriztük. Natív Windows helyett WSL ajánlott; a telepítő Bash-t és Linux-szerű venv-elérési utat használ.
+macOS esetén Homebrew-val `brew install node@24 python@3.12 ffmpeg tesseract expat` használható, de a teljes telepítést itt Linuxon ellenőriztük. Natív Windows helyett WSL ajánlott; a telepítő Bash-t és Linux-szerű venv-elérési utat használ.
 
 ## Használat
 
@@ -104,7 +104,7 @@ npm run typecheck
 npm run build
 ```
 
-A `npm test` **7 konkrét adatkezelési tesztet** futtat ideiglenes SQLite-adatbázissal. Egy nulla tesztes vagy csak fájlszintű eredmény nem helyettesíti ezt. Egyes korlátozott futtatókban alfolyamatok indításához a környezet által biztosított engedélyezett parancsfuttatás kellhet.
+A `npm test` **10 konkrét tesztet** (7 adatkezelési és 3 Python-futtatókörnyezeti) futtat ideiglenes SQLite-adatbázissal. Egy nulla tesztes vagy csak fájlszintű eredmény nem helyettesíti ezt. Egyes korlátozott futtatókban alfolyamatok indításához a környezet által biztosított engedélyezett parancsfuttatás kellhet.
 
 A végpontok és böngészős felület integrációs tesztjéhez **ne a saját könyvadatbázisodat használd**. Üres, elkülönített tesztpéldány kell. Az alábbi első parancs futva marad:
 
@@ -139,7 +139,10 @@ SQLite indokolt a személyes, egygépes használathoz: nem igényel külön adat
 ### A jelenlegi változat ellenőrzési eredménye
 
 - A teljes `npm run setup` Linuxon sikerült, a rögzített függőségekkel, ellenőrzött magyar/angol modellekkel és sikeres production builddel.
-- 7/7 SQLite/adatellenőrzési teszt és 29/29 API-/asztali/mobil böngészős ellenőrzés sikeres, valódi FFmpeg- és magyar–angol Tesseract-feldolgozással.
+- 10/10 adatkezelési/Python-futtatókörnyezeti teszt és 29/29 API-/asztali/mobil böngészős ellenőrzés sikeres, valódi FFmpeg- és magyar–angol Tesseract-feldolgozással.
 - Külön Chromium tesztkamerával a MediaRecorder tényleges felvételt, leállítást és Blob-videóelőnézetet készített (`TEST_BASE_URL=http://127.0.0.1:3001 node tests/camera.mjs`). Ez továbbra sem valódi iPhone/Android teszt.
 - Szerver-újraindítás után a három tesztkönyv és a dedikációs kép visszaolvasható volt. A tesztek külön `/tmp` adatkönyvtárban futottak; a személyes `data/` könyvtár üres maradt.
 - TypeScript-ellenőrzés sikeres. Élő Open Library adatlekérés: a felhőhálózat jelenlegi tiltása miatt nem ellenőrzött. A kereső hibát mutat, nem hamis találatot.
+
+
+Macen a Homebrew Expat-könyvtára szükséges az olyan Python-telepítésekhez, amelyek a rendszer régebbi `libexpat` verziójával nem tudják betölteni a `pyexpat` modult. A telepítő és indító megkeresi az Expat Homebrew-helyét. A telepítési Python-parancsok, az OCR és a ZIP-mentés/visszaállítás ugyanazt a könyvtárat kapják meg, csak a saját Python-folyamataikhoz. Nem módosítjuk a macOS rendszerkönyvtárait és nem állítunk be globális betöltőváltozókat. Az érintett felhasználó Macjén az Expat 2.9.0 betöltésével a `pyexpat` és a macOS 26.0 verziólekérdezés működését visszaigazolta.

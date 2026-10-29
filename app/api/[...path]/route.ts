@@ -1,3 +1,4 @@
+import {pythonCommand,pythonEnvironment} from '../../../lib/python';
 import {NextRequest,NextResponse} from 'next/server';
 import {db,books,saveBook,jobs,dataDir} from '../../../lib/db';
 import {fields,cleanBook} from '../../../lib/model';
@@ -73,10 +74,10 @@ async function handle(req:NextRequest,context:{params:Promise<{path:string[]}>})
    const zip=path.join(temp,'backup.zip');
    if(method==='GET'){
     await writeFile(path.join(temp,'manifest.json'),JSON.stringify({version:1,books:books(),createdAt:new Date().toISOString()}));await cp(path.join(dataDir,'uploads'),path.join(temp,'uploads'),{recursive:true});
-    await exec(process.env.PYTHON_BIN||'python3',['scripts/archive.py','pack',temp,zip],{timeout:120000});return new NextResponse(await readFile(zip),{headers:{'Content-Type':'application/zip','Content-Disposition':'attachment; filename="ex-libris-mentes.zip"'}});
+    await exec(pythonCommand(),['scripts/archive.py','pack',temp,zip],{timeout:120000,env:pythonEnvironment()});return new NextResponse(await readFile(zip),{headers:{'Content-Type':'application/zip','Content-Disposition':'attachment; filename="ex-libris-mentes.zip"'}});
    }
    if(method==='POST'){
-    const file=await upload(req,200*1024*1024);await writeFile(zip,Buffer.from(await file.arrayBuffer()));const target=path.join(temp,'restore');await mkdir(target);await exec(process.env.PYTHON_BIN||'python3',['scripts/archive.py','unpack',target,zip],{timeout:120000});
+    const file=await upload(req,200*1024*1024);await writeFile(zip,Buffer.from(await file.arrayBuffer()));const target=path.join(temp,'restore');await mkdir(target);await exec(pythonCommand(),['scripts/archive.py','unpack',target,zip],{timeout:120000,env:pythonEnvironment()});
     const manifest=JSON.parse(await readFile(path.join(target,'manifest.json'),'utf8'));if(manifest.version!==1||!Array.isArray(manifest.books)||manifest.books.length>10000)throw new Error('Érvénytelen biztonsági mentés.');
     const ids=new Set<string>();const validated=manifest.books.map((b:Record<string,unknown>)=>{if(typeof b.id!=='string'||!/^[a-f0-9-]{36}$/i.test(b.id)||ids.has(b.id))throw new Error('Érvénytelen vagy ismétlődő azonosító a mentésben.');ids.add(b.id);return {...cleanBook(b),id:b.id,createdAt:typeof b.createdAt==='string'&&!Number.isNaN(Date.parse(b.createdAt))?b.createdAt:new Date().toISOString()};});
     if(db.prepare("SELECT id FROM jobs WHERE status='processing'").get())throw new Error('Várd meg a folyamatban lévő felismerést.');

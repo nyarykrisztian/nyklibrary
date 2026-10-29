@@ -3,10 +3,11 @@ import {spawn} from 'node:child_process';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {db,dataDir} from './db';
+import {pythonCommand,pythonEnvironment} from './python';
 export function recognize(id:string,source:string){
- const python=process.env.PYTHON_BIN||(existsSync(/* turbopackIgnore: true */ path.join(process.cwd(),'.venv','bin','python'))?path.resolve(/* turbopackIgnore: true */ '.venv/bin/python'):'python3');
+ const python=pythonCommand();
  const tessdata=path.resolve('.runtime/tessdata');
- const child=spawn(/* turbopackIgnore: true */ python,[path.resolve('scripts/recognize.py'),source,path.join(dataDir,'uploads',id)],{env:{...process.env,OMP_THREAD_LIMIT:'2',...(existsSync(path.join(tessdata,'hun.traineddata'))?{TESSDATA_PREFIX:tessdata}:{})}});
+ const child=spawn(/* turbopackIgnore: true */ python,[path.resolve('scripts/recognize.py'),source,path.join(dataDir,'uploads',id)],{env:{...pythonEnvironment(),OMP_THREAD_LIMIT:'2',...(existsSync(path.join(tessdata,'hun.traineddata'))?{TESSDATA_PREFIX:tessdata}:{})}});
  let output='',errors='';const timeout=setTimeout(()=>child.kill('SIGKILL'),480000);
  child.stdout.on('data',c=>{output+=c.toString();});child.stderr.on('data',c=>{errors=(errors+c.toString()).slice(-3000);});
  const fail=(message:string)=>db.prepare("UPDATE jobs SET status='failed',error=? WHERE id=?").run(message,id);

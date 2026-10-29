@@ -53,7 +53,7 @@ Majd:
 bash Telepites.command
 ```
 
-Ez automatikusan telepíti a Node.js-t, a rögzített Python 3.12-t, FFmpeget, Tesseractot, a magyar és angol felismerőmodelleket, valamint az alkalmazás függőségeit. Végül elkészíti a futtatható alkalmazást. Az első alkalom 10–30 percet, lassabb vagy régebbi Macen többet is igénybe vehet. Internet kell hozzá. Az eszközök és modellek használatához nincs előfizetési díj.
+Ez automatikusan telepíti a Node.js-t, a rögzített Python 3.12-t, FFmpeget, Tesseractot, a Homebrew Expat XML-könyvtárát, a magyar és angol felismerőmodelleket, valamint az alkalmazás függőségeit. Végül elkészíti a futtatható alkalmazást. Az első alkalom 10–30 percet, lassabb vagy régebbi Macen többet is igénybe vehet. Internet kell hozzá. Az eszközök és modellek használatához nincs előfizetési díj.
 
 A sok futó szöveg normális. A `deprecated` kezdetű npm-figyelmeztetés önmagában nem jelenti a telepítés hibáját. A befejezéskor ezt kell látnod: **„A telepítés elkészült. Indítás: bash Inditas.command”**.
 
@@ -158,3 +158,14 @@ A javított setup először pip nélkül hozza létre a virtuális környezetet,
 A `scripts/repair-macos.command` frissíti a három szükséges telepítőfájlt, majd újrafuttatja a Mac-telepítőt. Megadható neki az ellenőrzött teljes Git-commitazonosító, hogy a GitHub gyorsítótára helyett biztosan a kívánt változatot töltse le. A beszélgetésben megadott legújabb javítóparancsot használd; az előző részben szereplő kétfájlos frissítés önmagában ehhez a hibához már nem elegendő.
 
 Fejlesztői ellenőrzés: `.venv/bin/python tests/python-packages-test.py` (3 célzott regressziós teszt), `node tests/setup-install.mjs` (hiányos környezet megőrzése és újraépítése). A pip offline telepítését üres, valódi venv-ben is ellenőriztük Linuxon; a teljes macOS folyamatot a felhasználó gépén kell visszaellenőrizni.
+
+
+## A tényleges macOS-ok: nem betölthető pyexpat
+
+A felhasználó Macjén a részletes ellenőrzés kimutatta: a Python `pyexpat` modulja a rendszer `/usr/lib/libexpat.1.dylib` fájljából egy hiányzó `_XML_SetAllocTrackerActivationThreshold` funkciót próbált betölteni. Emiatt a `plistlib` sem működött, a macOS-verzió üres lett, és a pip több helyen elakadt. A tanúsítványkezelés korábbi módosítása önmagában nem javította az XML-betöltést.
+
+A Homebrew `expat` telepítése és annak célzott megadása a Python számára a felhasználó gépén ezt adta: `XML: expat_2.9.0`, `macOS: 26.0`. Ez visszaigazolta a tényleges megoldást. Az új telepítő és indító már ezt alkalmazza. A rendszer saját fájljait nem cseréljük le, Homebrew force-link nem szükséges.
+
+A `scripts/python-env.sh` minden telepítési Python-indításhoz külön adja át a megfelelő könyvtárat. A webszerver `lib/python.ts` segédje ugyanezt teszi az OCR és a ZIP-mentési/visszaállítási Python-folyamatokhoz. A macOS védett parancsértelmezői eltávolíthatnak DYLD-változókat, ezért a beállítást közvetlenül a Python-folyamat kapja meg, nem a teljes rendszer.
+
+A legújabb `scripts/repair-macos.command` már az indítót és a Python-folyamatokat kezelő alkalmazásfájlokat is frissíti, majd újrafuttatja a telepítést. Az aktuális beszélgetésben adott legújabb javítóparancsot használd; a korábbi javításazonosítók még nem tartalmazzák ezt. A `data` mappát és a könyveket a javítás nem módosítja.
