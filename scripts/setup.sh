@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+export NEXT_TELEMETRY_DISABLED=1
+node -e 'const [major,minor]=process.versions.node.split(".").map(Number);if(major<24||(major===24&&minor<5))throw Error("Node.js 24.5 vagy újabb szükséges.")'
+for tool in python3 ffmpeg ffprobe tesseract curl; do
+  command -v "$tool" >/dev/null || { echo "Hiányzó program: $tool. Lásd README.md – Telepítés." >&2; exit 1; }
+done
+# macOS ships shasum; GNU/Linux normally provides sha256sum.
+if command -v sha256sum >/dev/null; then
+  checksum() { sha256sum --check; }
+elif command -v shasum >/dev/null; then
+  checksum() { shasum -a 256 --check; }
+else
+  echo "Hiányzó SHA-256 ellenőrző: sha256sum vagy shasum szükséges." >&2
+  exit 1
+fi
+npm ci --no-audit --no-fund
+if [[ ! -x .venv/bin/python ]]; then python3 -m venv .venv; fi
+.venv/bin/python -m pip install --disable-pip-version-check -r requirements.txt
+mkdir -p .runtime/tessdata
+for lang in eng hun; do
+  if [[ "$lang" == eng ]]; then expected=7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2
+  else expected=35067e7cfe102dcdc953f9a758fdfaa6296b17a1ee6d874ee780fa306430b9fb; fi
+  model=".runtime/tessdata/$lang.traineddata"
+  if [[ ! -f "$model" ]] || ! printf '%s  %s\n' "$expected" "$model" | checksum >/dev/null 2>&1; then
+    curl --fail --location --retry 2 --max-time 90 "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/$lang.traineddata" -o "$model.download"
+    printf '%s  %s\n' "$expected" "$model.download" | checksum
+    mv "$model.download" "$model"
+  fi
+done
+TESSDATA_PREFIX="$PWD/.runtime/tessdata" tesseract --list-langs
+npm run build

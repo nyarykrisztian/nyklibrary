@@ -1,0 +1,33 @@
+{
+  "name": "ex-libris",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node --use-env-proxy node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --webpack",
+    "build": "next build --webpack",
+    "start": "node --use-env-proxy node_modules/next/dist/bin/next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "setup": "bash scripts/setup.sh",
+    "test:acceptance": "node tests/acceptance.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "exceljs": "4.4.0",
+    "csv-parse": "6.1.0",
+    "lucide-react": "0.577.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@playwright/test": "1.58.2"
+  },
+  "engines": {
+    "node": ">=24.5.0"
+  },
+  "type": "module"
+}

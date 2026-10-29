@@ -1,0 +1,16 @@
+import {test,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync} from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {cleanBook,normalized} from '../lib/model.ts';
+const temp=mkdtempSync(path.join(os.tmpdir(),'exlibris-test-'));process.env.EX_LIBRIS_DATA_DIR=temp;
+const {db,books,saveBook}=await import('../lib/db.ts');
+after(()=>{db.close();rmSync(temp,{recursive:true,force:true});});
+test('Az ismeretlen adatok üresek maradnak; cím kötelező',()=>{assert.throws(()=>cleanBook({author:'Valaki'}),/cím/);const b=cleanBook({title:'Történetek'});assert.equal(b.author,'');assert.equal(b.year,'');assert.equal(b.publisher,'');assert.equal(b.isbn,'');});
+test('Csak biztonságos képhivatkozás tárolható',()=>{assert.throws(()=>cleanBook({title:'Könyv',cover:'javascript:alert(1)'}));assert.throws(()=>cleanBook({title:'Könyv',cover:'data:text/html,test'}));assert.equal(cleanBook({title:'Könyv',cover:'/api/media/a.jpg'}).cover,'/api/media/a.jpg');});
+test('Kereséshez ékezetfüggetlen normalizálás',()=>assert.equal(normalized('  Árvíztűrő TÜKÖRFÚRÓ! '),'arvizturo tukorfuro'));
+test('Külön mű, kiadás és fizikai példány',()=>{const a=saveBook({title:'Tesztkönyv',author:'Szerző',publisher:'Kiadó',year:'2000'});const b=saveBook({title:'Tesztkönyv',author:'Szerző',publisher:'Kiadó',year:'2000'});const c=saveBook({title:'Tesztkönyv',author:'Szerző',publisher:'Kiadó',year:'2010'});assert.notEqual(a.id,b.id);assert.equal(a.workId,b.workId);assert.equal(a.editionId,b.editionId);assert.equal(a.workId,c.workId);assert.notEqual(a.editionId,c.editionId);assert.equal(books().length,3);});
+test('Szerkesztés és törlés csak a kiválasztott példányon',()=>{const b=books()[0];saveBook({...b,notes:'Saját emlék',dedicated:true},b.id);assert.equal(books().find(x=>x.id===b.id)?.notes,'Saját emlék');db.prepare('DELETE FROM copies WHERE id=?').run(b.id);assert.equal(books().length,2);assert.throws(()=>saveBook({title:'Más'},'nem-letezik'));});
+test('Csoportos import visszagörgethető hiba esetén',()=>{const count=books().length;db.exec('BEGIN IMMEDIATE');saveBook({title:'Import teszt'});db.exec('ROLLBACK');assert.equal(books().length,count);});
+test('Valódi SQLite tároló és integritásellenőrzés',()=>{assert.equal(db.prepare('PRAGMA integrity_check').get()?.integrity_check,'ok');const rows=db.prepare('SELECT data FROM copies').all();assert.equal(rows.length,2);assert.ok(rows.every(r=>JSON.parse(String(r.data)).title==='Tesztkönyv'));});
