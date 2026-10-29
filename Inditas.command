@@ -17,6 +17,10 @@ if [[ ! -f .next/BUILD_ID || ! -d node_modules || ! -x .venv/bin/python ]]; then
   echo "Még nincs kész a telepítés. Előbb futtasd: bash Telepites.command"
   exit 1
 fi
+if ! .venv/bin/python -c 'from PIL import Image' >/dev/null 2>&1; then
+  echo "A Python-környezet telepítése hiányos. Futtasd: bash Telepites.command"
+  exit 1
+fi
 if curl --fail --silent --max-time 2 http://127.0.0.1:3000/api/books >/dev/null 2>&1; then
   echo "Az alkalmazás már fut. Megnyitjuk a böngészőben."
   open http://127.0.0.1:3000

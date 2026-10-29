@@ -3,7 +3,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export NEXT_TELEMETRY_DISABLED=1
 node -e 'const [major,minor]=process.versions.node.split(".").map(Number);if(major<24||(major===24&&minor<5))throw Error("Node.js 24.5 vagy újabb szükséges.")'
-for tool in python3 ffmpeg ffprobe tesseract curl; do
+setup_python="${EX_LIBRIS_SETUP_PYTHON:-python3}"
+for tool in "$setup_python" ffmpeg ffprobe tesseract curl; do
   command -v "$tool" >/dev/null || { echo "Hiányzó program: $tool. Lásd README.md – Telepítés." >&2; exit 1; }
 done
 # macOS ships shasum; GNU/Linux normally provides sha256sum.
@@ -16,7 +17,22 @@ else
   exit 1
 fi
 npm ci --no-audit --no-fund
-if [[ ! -x .venv/bin/python ]]; then python3 -m venv .venv; fi
+base_version="$("$setup_python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+venv_version="$(.venv/bin/python -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || true)"
+if [[ -d .venv ]]; then
+  if [[ "$venv_version" != "$base_version" ]] || ! .venv/bin/python -m pip --version >/dev/null 2>&1; then
+    backup=".venv-incomplete-$(date +%Y%m%d-%H%M%S)-$$"
+    echo "Hiányos vagy más Python-verziójú környezet: megőrizzük itt: $backup"
+    mv .venv "$backup"
+  fi
+fi
+if [[ ! -x .venv/bin/python ]]; then
+  echo "Python $base_version környezet létrehozása…"
+  if ! "$setup_python" -m venv .venv; then
+    echo "Nem sikerült a Python-környezet létrehozása. A fenti hibaüzenetet másold be a beszélgetésbe." >&2
+    exit 1
+  fi
+fi
 .venv/bin/python -m pip install --disable-pip-version-check -r requirements.txt
 mkdir -p .runtime/tessdata
 for lang in eng hun; do

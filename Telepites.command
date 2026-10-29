@@ -14,8 +14,9 @@ else
 fi
 export PATH="$(dirname "$brew_bin"):$PATH"
 echo "Az Ex Libris szükséges programjait telepítjük. Ez első alkalommal hosszabb ideig tarthat."
-"$brew_bin" install node@24 python ffmpeg tesseract
+"$brew_bin" install node@24 python@3.12 ffmpeg tesseract
 export PATH="$("$brew_bin" --prefix node@24)/bin:$("$brew_bin" --prefix)/bin:$PATH"
+export EX_LIBRIS_SETUP_PYTHON="$("$brew_bin" --prefix python@3.12)/bin/python3.12"
 npm run setup
 echo ""
 echo "A telepítés elkészült. Indítás: bash Inditas.command"

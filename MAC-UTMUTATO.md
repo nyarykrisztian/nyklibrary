@@ -53,7 +53,7 @@ Majd:
 bash Telepites.command
 ```
 
-Ez automatikusan telepíti a Node.js-t, Pythont, FFmpeget, Tesseractot, a magyar és angol felismerőmodelleket, valamint az alkalmazás függőségeit. Végül elkészíti a futtatható alkalmazást. Az első alkalom 10–30 percet, lassabb vagy régebbi Macen többet is igénybe vehet. Internet kell hozzá. Az eszközök és modellek használatához nincs előfizetési díj.
+Ez automatikusan telepíti a Node.js-t, a rögzített Python 3.12-t, FFmpeget, Tesseractot, a magyar és angol felismerőmodelleket, valamint az alkalmazás függőségeit. Végül elkészíti a futtatható alkalmazást. Az első alkalom 10–30 percet, lassabb vagy régebbi Macen többet is igénybe vehet. Internet kell hozzá. Az eszközök és modellek használatához nincs előfizetési díj.
 
 A sok futó szöveg normális. A `deprecated` kezdetű npm-figyelmeztetés önmagában nem jelenti a telepítés hibáját. A befejezéskor ezt kell látnod: **„A telepítés elkészült. Indítás: bash Inditas.command”**.
 
@@ -129,3 +129,21 @@ A Homebrew és a teljes telepítés nem kell minden alkalommal. A telefonos felv
 ## Ha elakadsz
 
 Írd meg, melyik számozott lépésnél tartasz, és másold be a hiba utolsó 10–20 sorát, vagy küldj képernyőképet. Jelszót és személyes könyvlistát ne másolj be. Ha a Mac engedélyt vagy hibát mutat, a pontos szöveg alapján tudunk segíteni; nem kell vaktában módosítanod a biztonsági beállításokat.
+
+
+## Javítás, ha a telepítés az ensurepip lépésnél megállt
+
+Ha az üzenetben `.venv/bin/python3.15`, `ensurepip` és `non-zero exit status 1` szerepel, a Python-környezet létrehozása szakadt meg. A sárga npm-figyelmeztetések önmagukban nem ezt okozzák. A pontos ensurepip-ok a rövid hibaüzenetből nem állapítható meg; a javított telepítő rögzített Python 3.12-t használ, és a hiányos környezetet újra létrehozza.
+
+A régebbi ZIP-ből telepített mappában a két javított fájlt így frissítheted, a Terminálban, egyenként:
+
+```bash
+cd "$HOME/ex-libris"
+curl --fail --location https://raw.githubusercontent.com/nyarykrisztian/nyklibrary/main/Telepites.command -o Telepites.command.download && mv Telepites.command.download Telepites.command
+curl --fail --location https://raw.githubusercontent.com/nyarykrisztian/nyklibrary/main/scripts/setup.sh -o scripts/setup.sh.download && mv scripts/setup.sh.download scripts/setup.sh
+bash Telepites.command
+```
+
+Csak a telepítés sikeres befejezése után indítsd: `bash Inditas.command`. A frissítés a könyvadatbázishoz nem nyúl. A sikertelen régi `.venv` mappát a telepítő `.venv-incomplete-*` néven megőrzi; nem kell kézzel törölnöd.
+
+Ha a `curl` 404-es vagy hozzáférési hibát ad, ne folytasd a következő paranccsal: jelezd a hiba szövegét. Privát GitHub-tárolónál a böngészős GitHub-bejelentkezés önmagában nem hitelesíti a Terminál letöltését; ilyenkor böngészőből töltsd le a friss forrás-ZIP-et, és csak a benne lévő `Telepites.command` és `scripts/setup.sh` fájlokat másold a meglévők helyére. A teljes alkalmazásmappát és különösen a `data` mappát ne cseréld le.

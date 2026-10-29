@@ -40,9 +40,9 @@ Az alábbi útmutató Ubuntu/Debian Linuxra, illetve Windows alatt Ubuntu WSL-re
 
 6. A böngésző címsorába írd: `http://127.0.0.1:3000`. A terminált hagyd nyitva. Leállítás: **Ctrl+C**. Újraindításkor elég az 5. lépés; a könyvek és képek megmaradnak.
 
-Fejlesztéshez `npm run dev`; kódmódosítás utáni normál használathoz előbb `npm run build`, majd `npm start`. A Webpack buildet használjuk, mert a Next.js Turbopackja a projektbeli Python-venv külső rendszerre mutató symlinkjeit ebben a környezetben nem tudta kezelni. A program minden parancsot a projekt gyökérkönyvtárából vár.
+Fejlesztéshez `npm run dev`; kódmódosítás utáni normál használathoz előbb `npm run build`, majd `npm start`. A Webpack buildet használjuk, mert a Next.js Turbopackja a projektbeli Python-venv külső rendszerre mutató symlinkjeit ebben a környezetben nem tudta kezelni. A program minden parancsot a projekt gyökérkönyvtárából vár. A Mac-telepítő rögzített Python 3.12-t választ; hiányos vagy eltérő verziójú `.venv` esetén a régit `.venv-incomplete-*` néven megőrzi, majd újat készít. A könyvadatokat nem módosítja.
 
-macOS esetén Homebrew-val `brew install node@24 python ffmpeg tesseract` használható, de a teljes telepítést itt Linuxon ellenőriztük. Natív Windows helyett WSL ajánlott; a telepítő Bash-t és Linux-szerű venv-elérési utat használ.
+macOS esetén Homebrew-val `brew install node@24 python@3.12 ffmpeg tesseract` használható, de a teljes telepítést itt Linuxon ellenőriztük. Natív Windows helyett WSL ajánlott; a telepítő Bash-t és Linux-szerű venv-elérési utat használ.
 
 ## Használat
 
