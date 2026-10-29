@@ -8,11 +8,11 @@ setup_python="${EX_LIBRIS_SETUP_PYTHON:-python3}"
 for tool in "$setup_python" ffmpeg ffprobe tesseract curl; do
   command -v "$tool" >/dev/null || { echo "Hiányzó program: $tool. Lásd README.md – Telepítés." >&2; exit 1; }
 done
-# macOS ships shasum; GNU/Linux normally provides sha256sum.
-if command -v sha256sum >/dev/null; then
-  checksum() { sha256sum --check; }
-elif command -v shasum >/dev/null; then
-  checksum() { shasum -a 256 --check; }
+# Prefer macOS shasum; use portable short options (BSD lacks GNU --check).
+if command -v shasum >/dev/null; then
+  checksum() { shasum -a 256 -c; }
+elif command -v sha256sum >/dev/null; then
+  checksum() { sha256sum -c; }
 else
   echo "Hiányzó SHA-256 ellenőrző: sha256sum vagy shasum szükséges." >&2
   exit 1

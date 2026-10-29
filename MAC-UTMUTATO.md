@@ -169,3 +169,8 @@ A Homebrew `expat` telepítése és annak célzott megadása a Python számára 
 A `scripts/python-env.sh` minden telepítési Python-indításhoz külön adja át a megfelelő könyvtárat. A webszerver `lib/python.ts` segédje ugyanezt teszi az OCR és a ZIP-mentési/visszaállítási Python-folyamatokhoz. A macOS védett parancsértelmezői eltávolíthatnak DYLD-változókat, ezért a beállítást közvetlenül a Python-folyamat kapja meg, nem a teljes rendszer.
 
 A legújabb `scripts/repair-macos.command` már az indítót és a Python-folyamatokat kezelő alkalmazásfájlokat is frissíti, majd újrafuttatja a telepítést. Az aktuális beszélgetésben adott legújabb javítóparancsot használd; a korábbi javításazonosítók még nem tartalmazzák ezt. A `data` mappát és a könyveket a javítás nem módosítja.
+
+
+## Ha a modellek letöltése után „usage: sha256sum” jelenik meg
+
+Ha előtte a `Successfully installed pip` és `Successfully installed Pillow` sorok szerepelnek, a Python-javítás már sikerült. Ilyenkor a Mac SHA-256 eszköze nem ismeri a GNU-s `--check` kapcsolót. A javított telepítő a macOS `shasum -a 256 -c` parancsát részesíti előnyben, tartalékként a hordozható `sha256sum -c` alakot használja. A várt modellhash-ek változatlanok, sérült letöltést továbbra sem fogad el. Ehhez a javításhoz csak a `scripts/setup.sh` fájlt kell frissíteni, majd újrafuttatni a Mac-telepítőt.
