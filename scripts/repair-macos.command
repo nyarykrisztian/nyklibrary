@@ -9,7 +9,7 @@ fi
 base="https://raw.githubusercontent.com/nyarykrisztian/nyklibrary/$revision"
 temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/exlibris-repair.XXXXXX")"
 trap 'rm -rf "$temp_dir"' EXIT
-files=(Telepites.command Inditas.command scripts/setup.sh scripts/python-env.sh scripts/python-packages.py lib/python.ts lib/recognition.ts 'app/api/[...path]/route.ts')
+files=(Telepites.command Inditas.command scripts/setup.sh scripts/python-env.sh scripts/python-packages.py lib/python.ts lib/recognition.ts lib/hungarian.ts app/HungarianLookup.tsx app/page.tsx app/globals.css 'app/api/[...path]/route.ts')
 echo "A javított telepítő- és indítófájlok letöltése…"
 for file in "${files[@]}"; do
   mkdir -p "$temp_dir/$(dirname "$file")"

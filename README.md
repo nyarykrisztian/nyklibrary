@@ -146,3 +146,12 @@ SQLite indokolt a személyes, egygépes használathoz: nem igényel külön adat
 
 
 Macen a Homebrew Expat-könyvtára szükséges az olyan Python-telepítésekhez, amelyek a rendszer régebbi `libexpat` verziójával nem tudják betölteni a `pyexpat` modult. A telepítő és indító megkeresi az Expat Homebrew-helyét. A telepítési Python-parancsok, az OCR és a ZIP-mentés/visszaállítás ugyanazt a könyvtárat kapják meg, csak a saját Python-folyamataikhoz. Nem módosítjuk a macOS rendszerkönyvtárait és nem állítunk be globális betöltőváltozókat. Az érintett felhasználó Macjén az Expat 2.9.0 betöltésével a `pyexpat` és a macOS 26.0 verziólekérdezés működését visszaigazolta.
+
+
+## Magyar források és OCR-szövegek összevonása
+
+A könyvszerkesztő **Magyar és nemzetközi források** keresője célzott, külön böngészőlapos Google-keresést nyit a Líra, Libri, Bookline, Moly, FSZEK és OSZK domainjeire. Ezek keresési hivatkozások, nem az alkalmazásban már igazolt bibliográfiai találatok. A keresőkifejezés a Google-hoz kerül. A talált konkrét könyvadatlap HTTPS-címét visszamásolva az **Adatok lekérése** a hozzáférhető schema.org Book/Product JSON-LD adatokat olvassa ki. Az eredmény forráshivatkozással, mentés előtt ellenőrizhető. A rendszer nem következtet kiadóra a kereskedő nevéből, nem vesz át termékoldal-frissítési dátumot kiadási évként, és ellenőrzi az ISBN ellenőrzőösszegét. Azonos mű nem bizonyítja a saját példány kiadását.
+
+Ez jelenleg segített magyar keresés, nem hat katalógus teljes, automatikus összesítése. Nincs Moly-API-hozzáférés, SRU/MARC-kapcsolat az OSZK/FSZEK felé, bejelentkezés vagy CAPTCHA-megkerülés. Ha nincs hozzáférhető strukturált adat, a felület ezt jelzi és kézi adatbevitelt kér. A fejlesztői felhőből a Líra, Libri és Moly elérését a hálózati proxy 403-mal blokkolta; az élő adatlapimportot ezeken nem igazoltuk. A felhasználó Macjén szolgáltatónként szükséges kipróbálni, a parser tesztjei önmagukban nem bizonyítanak élő kompatibilitást.
+
+A Polcfelismerés listája **szövegrészleteket, nem kötetszámot** mutat. Az egy forrásképről származó, ellenőrizetlen szerző/címrészek kijelölhetők és összevonhatók. Az eredeti részek „Összevonva” jelzést kapnak; az új, közös javaslat csak kézi ellenőrzés és jóváhagyás után lesz könyv. Ez nem új gerincdetektáló AI; a hibás OCR továbbra is javítandó. Korábbi könyvbejegyzéseket nem törlünk automatikusan.

@@ -1,3 +1,4 @@
+import {fetchCatalogPage} from '../../../lib/hungarian';
 import {pythonCommand,pythonEnvironment} from '../../../lib/python';
 import {NextRequest,NextResponse} from 'next/server';
 import {db,books,saveBook,jobs,dataDir} from '../../../lib/db';
@@ -38,6 +39,19 @@ async function handle(req:NextRequest,context:{params:Promise<{path:string[]}>})
    db.prepare("INSERT INTO jobs(id,name,status,created_at) VALUES(?,?,'processing',?)").run(jobId,file.name,new Date().toISOString());recognize(jobId,source);return json({id:jobId},202);
   }
  }
+ if(area==='candidates'&&id==='merge'&&method==='POST'){
+  const body=await req.json();const ids=Array.isArray(body.ids)?[...new Set(body.ids)]:[];
+  if(ids.length<2||ids.length>12||ids.some(x=>typeof x!=='string'))throw new Error('2–12 szövegrészletet jelölj ki.');
+  db.exec('BEGIN IMMEDIATE');try{
+   const rows=ids.map(x=>db.prepare('SELECT * FROM candidates WHERE id=?').get(String(x)));
+   if(rows.some(r=>!r||r.status!=='pending'))throw new Error('Csak ellenőrzésre váró szövegek vonhatók össze.');
+   const valid=rows as NonNullable<typeof rows[number]>[];const first=valid[0];
+   if(valid.some(r=>r.job_id!==first.job_id||r.frame!==first.frame))throw new Error('Azonos forrásképről származó szövegeket jelölj ki.');
+   const mergedId=randomUUID();db.prepare('INSERT INTO candidates(id,job_id,text,confidence,frame) VALUES(?,?,?,?,?)').run(mergedId,first.job_id,valid.map(r=>r.text).join(' · '),Math.min(...valid.map(r=>Number(r.confidence))),first.frame);
+   for(const item of ids)db.prepare("UPDATE candidates SET status='merged' WHERE id=?").run(String(item));
+   db.exec('COMMIT');return json({id:mergedId});
+  }catch(e){db.exec('ROLLBACK');throw e;}
+ }
  if(area==='candidates'&&id&&method==='POST'){
   const input=await req.json();const candidate=db.prepare('SELECT * FROM candidates WHERE id=?').get(id);if(!candidate)return json({error:'Nem található.'},404);
   if(candidate.status!=='pending')throw new Error('Ezt a találatot már feldolgoztad.');
@@ -50,6 +64,7 @@ async function handle(req:NextRequest,context:{params:Promise<{path:string[]}>})
   const filename=path.join(dataDir,'uploads',...segments);const ext=path.extname(filename);const types:Record<string,string>={'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp'};if(!types[ext])return json({error:'Nem elérhető.'},404);
   try{return new NextResponse(await readFile(filename),{headers:{'Content-Type':types[ext],'Cache-Control':'private, max-age=3600'}});}catch{return json({error:'A kép nem található.'},404);}
  }
+ if(area==='catalog-page'&&method==='POST'){const input=await req.json();if(typeof input.url!=='string')throw new Error('Hiányzó adatlapcím.');return json(await fetchCatalogPage(input.url));}
  if(area==='lookup'&&method==='GET'){
   const query=req.nextUrl.searchParams.get('q')?.trim();if(!query||query.length<3)throw new Error('Legalább három karaktert adj meg.');
   // Open Library search is deliberately bibliographic; exact edition data only comes from an edition/ISBN record.
